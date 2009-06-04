@@ -26,7 +26,7 @@
 				var testLink = getFitNesseTestLink(elements[i].childNodes);
 				if (testResultElement != null && testLink != null) {
 					if (isFailingTest(testResultElement)) {
-						var url = fitNesseServer+"."+testLink.href.split('#')[1];
+						var url = fitNesseServer+"."+testLink.innerHTML;
 						testElements[x] = url;
 						x++;
 						addOpenTestLink(elements[i], url);						
@@ -120,4 +120,3 @@
 		getElementsByClassName('header', null)[0].appendChild(openTestsAnchor);
     }
 
-    
