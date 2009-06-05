@@ -58,12 +58,9 @@
 	
 	 	var createOpenTestLink = function(url) {
 		    var openTestAnchor = document.createElement('a');
-			openTestAnchor.setAttribute('href', 'javascript:void(0)');
+			openTestAnchor.setAttribute('href', url);
 			openTestAnchor.setAttribute('style', 'font-weight:bold; color:red;');
 	    	openTestAnchor.innerHTML = "Open";
-	    	openTestAnchor.addEventListener("click", function(){
-		    	window.open(url, '_blank');	
-		   	}, true);
 			return openTestAnchor;
 	    }
 		
