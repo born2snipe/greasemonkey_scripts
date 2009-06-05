@@ -5,118 +5,87 @@
 // @include        file://*fitnesseResult*.html*
 // @include        http://*FrontPage*?suite*
 // ==/UserScript==
+// Add jQuery
+    var GM_JQ = document.createElement('script');
+    GM_JQ.src = 'http://ajax.googleapis.com/ajax/libs/jquery/1.3.1/jquery.min.js';
+    GM_JQ.type = 'text/javascript';
+    document.getElementsByTagName('head')[0].appendChild(GM_JQ);
 
-    function findFitNesseSuiteUrl() {
-	    var elements = document.getElementsByTagName('a');
-	    for (var i=0;i<elements.length;i++) {
-		    if (elements[i].className == 'page_title') {
-				return elements[i].href;    
+// Check if jQuery's loaded
+    function GM_wait() {
+        if(typeof unsafeWindow.jQuery == 'undefined') { window.setTimeout(GM_wait,100); }
+    else { $ = unsafeWindow.jQuery; letsJQuery(); }
+    }
+    GM_wait();
+
+// All your GM code must be inside this function
+    function letsJQuery() {
+		var failedTests = [];
+	
+		var findFitNesseSuiteUrl = function() {
+			return $(".page_title")[0].href;
+		}
+		
+		var findTestResultDivs = function() {
+			var divs = new Array();
+			divs = divs.concat($(".alternating_row_1"));
+			divs = divs.concat($(".alternating_row_2"));			
+			return divs;
+		}
+		
+		var getTestResult = function(element) {
+			return $(element).find("span").get(0);
+	    }
+	
+		var getTestResultLink = function(element) {
+			return $(element).find("a").get(0);
+	    }
+		
+		var isFailingTest = function(element) {
+			return !contains(element.innerHTML, '0 wrong, 0 ignored, 0 exceptions'); 
+		}
+		
+		var contains = function(text, doesContain) {
+			return text != null && text.indexOf(doesContain) != -1;
+	    }
+	
+	 	var createOpenTestLink = function(url) {
+		    var openTestAnchor = document.createElement('a');
+			openTestAnchor.setAttribute('href', 'javascript:void(0)');
+			openTestAnchor.setAttribute('style', 'font-weight:bold; color:red;');
+	    	openTestAnchor.innerHTML = "Open";
+	    	openTestAnchor.addEventListener("click", function(){
+		    	window.open(url, '_blank');	
+		   	}, true);
+			return openTestAnchor;
+	    }
+		
+		var findBrokenTests = function(fitNesseServer) {
+		    var elements = findTestResultDivs();	
+		    for (var i=0;i<elements.length;i++) {
+					var testResultElement = getTestResult(elements[i]);
+					if (isFailingTest(testResultElement)) {
+						var url = fitNesseServer+"."+getTestResultLink(elements[i]).innerHTML;
+						failedTests = failedTests.concat([url]);
+						$(elements[i])[0].appendChild(createOpenTestLink(url));
+					}
 		    }
 	    }
-	    return "";
-    }
-    
-    function findBrokenTests(fitNesseServer) {
-	    var testElements = new Array();
-	    var elements = document.getElementsByTagName('div');
-	    var x = 0;
-	    for (var i=0;i<elements.length;i++) {
-			if (isTestResultDiv(elements[i])) {
-				var testResultElement = getTestResult(elements[i].childNodes);
-				var testLink = getFitNesseTestLink(elements[i].childNodes);
-				if (testResultElement != null && testLink != null) {
-					if (isFailingTest(testResultElement)) {
-						var url = fitNesseServer+"."+testLink.innerHTML;
-						testElements[x] = url;
-						x++;
-						addOpenTestLink(elements[i], url);						
-					}
-				}
-			}
-	    }
-	    return testElements;
-    }
-    
-    function addOpenTestLink(element, url) {
-	    var openTestsAnchor = document.createElement('a');
-		openTestsAnchor.setAttribute('href', 'javascript:void(0)');
-		openTestsAnchor.setAttribute('style', 'font-weight:bold; color:red;');
-    	openTestsAnchor.innerHTML = "Open";
-    	openTestsAnchor.addEventListener("click", function(){
-	    	window.open(url, '_blank');	
-	   	}, true);
-	   	element.appendChild(openTestsAnchor);
-    }
-    
-    function isTestResultDiv(element) {
-		return contains(element.className, 'alternating_row');
-    }
-    
-    function getFitNesseTestLink(elements) {
-	    for (var i=0;i<elements.length;i++) {
-			if (isFitNesseTest(elements[i])) {
-				return elements[i];	
-			}
-		}
-		return null;
-    }
-    
-    function isFitNesseTest(element) {
-		if (element == null) return false;
-		return contains(element.className, 'test_summary_link');   
-    }
-    
-    function getTestResult(elements) {
-	    for (var i=0;i<elements.length;i++) {
-			if (isTestResult(elements[i])) {
-				return elements[i];	
-			}
-		}
-		return null;
-    }
-    
-    function isFailingTest(element) {
-	 	return !contains(element.innerHTML, '0 wrong, 0 ignored, 0 exceptions');   
-    }
-    
-    function isTestResult(element) {
-	   	var text = element.innerHTML;
-	 	return contains(text, 'right') && contains(text, 'wrong') && contains(text, 'ignored');
-    }
-    
-    function contains(text, doesContain) {
-		return text != null && text.indexOf(doesContain) != -1;
-    }
-    
-    function getElementsByClassName(classname, node) {	
-		if(node == null)
-			node = document.getElementsByTagName("body")[0];	
-			
-		var a = [];	
-		var re = new RegExp('\\b' + classname + '\\b');	
-		var els = node.getElementsByTagName("*");	
 		
-		for(var i=0,j=els.length; i<j; i++)	
-			if(re.test(els[i].className))a.push(els[i]);	
-				
-		return a;	
-	}
-	
-    var brokenTests = findBrokenTests(findFitNesseSuiteUrl());
- 
-       
-    if (brokenTests.length > 0) {
-		var openTestsAnchor = document.createElement('a');
-		openTestsAnchor.setAttribute('href', 'javascript:void(0)');
-		openTestsAnchor.setAttribute('id', 'openAllTests');
-		openTestsAnchor.setAttribute('class', 'fail');
-		openTestsAnchor.setAttribute('style', 'font-weight: bold; color:red; margin-left: 10px;');
-    	openTestsAnchor.innerHTML = "Open All Failed Tests";
-    	openTestsAnchor.addEventListener("click", function(){
-	    	for (var i=0;i<brokenTests.length;i++) {
-				window.open(brokenTests[i], '_blank');		
-			}
-		}, true);
-		getElementsByClassName('header', null)[0].appendChild(openTestsAnchor);
+		findBrokenTests(findFitNesseSuiteUrl());
+		
+		if (failedTests.length > 0) {
+			var openTestsAnchor = document.createElement('a');
+			openTestsAnchor.setAttribute('href', 'javascript:void(0)');
+			openTestsAnchor.setAttribute('id', 'openAllTests');
+			openTestsAnchor.setAttribute('class', 'fail');
+			openTestsAnchor.setAttribute('style', 'font-weight: bold; color:red; margin-left: 10px;');
+	    	openTestsAnchor.innerHTML = "Open All Failed Tests";
+	    	openTestsAnchor.addEventListener("click", function(){
+		    	for (var i=0;i<failedTests.length;i++) {
+					window.open(failedTests[i], '_blank');		
+				}
+			}, true);
+			$('.header')[0].appendChild(openTestsAnchor);
+	    }
     }
-
