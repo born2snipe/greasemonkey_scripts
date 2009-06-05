@@ -28,8 +28,15 @@
 		
 		var findTestResultDivs = function() {
 			var divs = new Array();
-			divs = divs.concat($(".alternating_row_1"));
-			divs = divs.concat($(".alternating_row_2"));			
+			// Does NOT work on older FitNesse Page Results?!
+//			divs = divs.concat($(".alternating_row_1"));
+//			divs = divs.concat($(".alternating_row_2"));			
+			var elements = document.getElementsByTagName('div');
+			for (var i=0;i<elements.length;i++){
+				if (elements[i].className.indexOf('alternating_row') != -1) {
+					divs = divs.concat([elements[i]]);	
+				}
+			}
 			return divs;
 		}
 		
