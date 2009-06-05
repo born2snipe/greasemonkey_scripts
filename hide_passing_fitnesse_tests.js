@@ -62,7 +62,6 @@
 					findTestResultOutput(getTestResultLink(elements[i]).href);					
 				}
 		    }
-		    alert(passingTestElements.length);
 	    }
 	
 		var findTestResultOutput = function(testResultLink) {
