@@ -45,7 +45,7 @@
 	    }
 		
 		var isFailingTest = function(element) {
-			return !contains(element.innerHTML, '0 wrong, 0 ignored, 0 exceptions'); 
+			return !contains(element.innerHTML, ' 0 wrong, 0 ignored, 0 exceptions'); 
 		}
 		
 		var contains = function(text, doesContain) {
